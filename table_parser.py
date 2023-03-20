@@ -8,14 +8,14 @@ class Register:
     def __init__(self, line):
         parts = re.split("\s", line)
         self.hex_address = parts[0]
-        self.dec_address = parts[1]
+        self.dec_address = int(parts[1])
         number_of_parts = len(parts)
         self.freetext = " ".join(parts[2:number_of_parts - 6])
         regex = re.compile('[^a-zA-Z0-9]')
         self.index = regex.sub('', "".join(parts[2:number_of_parts - 6]))
         self.unit = parts[number_of_parts - 6]
         self.format = parts[number_of_parts - 5]
-        self.n = parts[number_of_parts - 4]
+        self.n = int(parts[number_of_parts - 4])
         self.access = parts[number_of_parts - 3]
         self.code = parts[number_of_parts - 2]
         self.values = {}
@@ -27,10 +27,10 @@ class Register:
             self.values[index] = value
 
     def __str__(self):
-        return "addr:" + self.hex_address + "(" + self.dec_address + ")" \
+        return "addr:" + self.hex_address + "(" + str(self.dec_address) + ")" \
             + " unit=" + self.unit \
             + " format=" + self.format \
-            + " bytes=" + self.n \
+            + " bytes=" + str(self.n) \
             + " access=" + self.access \
             + " code=" + self.code \
             + " desc=" + self.freetext \
