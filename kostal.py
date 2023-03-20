@@ -5,25 +5,18 @@ from pymodbus.payload import BinaryPayloadDecoder
 
 # Interface class to a Kostal unit.
 class Kostal:
-    # Set up a unit using IP and port information as well as Interface description.
+    # Set up a unit using IP, port, and unit_id information as well as Interface description.
     # Try to connect to the Kostal unit specified and leave a connection open for the lifetime of the class.
-    # test = True: do not try to connect to a real device
-    def __init__(self, inverter_ip, inverter_port, icd, test):
+    def __init__(self, inverter_ip, inverter_port, unit_id, icd):
         self.icd = icd
         self.inverter_ip = inverter_ip
         self.inverter_port = inverter_port
+        self.unit_id = unit_id
 
-        if not test:
-            # connection to Kostal unit
-            self.client = ModbusTcpClient(self.inverter_ip, port=self.inverter_port)
-            if not self.client.connect():
-                raise ConnectionRefusedError("Connection to Kostal unit failed")
-
-            # get unit ID
-            self.unit_id = self.read_u16("MODBUSUnitID")
-        else:
-            self.client = None
-            self.unit_id = 71
+        # connection to Kostal unit
+        self.client = ModbusTcpClient(self.inverter_ip, port=self.inverter_port)
+        if not self.client.connect():
+            raise ConnectionRefusedError("Connection to Kostal unit failed")
 
     # Shut down connection to the Kostal unit.
     def __del__(self):
@@ -40,17 +33,17 @@ class Kostal:
 
         match register.format:
             case "Bool":
-                return self.read_bool(register.decaddress)
+                return self.read_bool(register.dec_address)
             case "U16":
-                return self.read_u16(register.decaddress)
+                return self.read_u16(register.dec_address)
             case "S16":
-                return self.read_s16(register.decaddress)
+                return self.read_s16(register.dec_address)
             case "U32":
-                return self.read_u32(register.decaddress)
+                return self.read_u32(register.dec_address)
             case "Float":
-                return self.read_float(register.decaddress)
+                return self.read_float(register.dec_address)
             case "String":
-                return self.read_string(register.decaddress, register.n)
+                return self.read_string(register.dec_address, register.n)
             case "_":
                 raise RuntimeError(f"Format {register.format} not supported.")
 
@@ -84,7 +77,7 @@ class Kostal:
     def read_float(self, adr_dec):
         r1 = self.client.read_holding_registers(adr_dec, 2, slave=self.unit_id)
         float_register = BinaryPayloadDecoder.fromRegisters(r1.registers, byteorder=Endian.Big, wordorder=Endian.Little)
-        result_float_register = round(float_register.decode_32bit_float(), n)
+        result_float_register = round(float_register.decode_32bit_float(), 3)
         return result_float_register
 
     # Function to read an n-register string
